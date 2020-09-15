@@ -17,15 +17,13 @@
 #include <osgGA/GUIEventHandler>
 #include <osgGA/TrackballManipulator>
 
-osg::ref_ptr<osg::Image> _image;
-
 void VirtualCamera::createVirtualCamera(osg::ref_ptr<osg::Camera> cam, int width, int height)
 {
 	camera = cam;
 	// Initial Values
-	camera->setProjectionMatrixAsPerspective(320., 1., 1., 100.);
+	camera->setProjectionMatrixAsPerspective(320, 1., 1., 100.);
 	camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER);
-	image = new osg::Image; 
+	image = new osg::Image;
 	image->allocateImage(width, height, 1, GL_BGR, GL_UNSIGNED_BYTE);
 	camera->attach(osg::Camera::COLOR_BUFFER, image.get());
 }
@@ -54,30 +52,35 @@ BackgroundCamera::BackgroundCamera() {
 	img = new osg::Image;
 }
 
+void flipImageV(unsigned char* top, unsigned char* bottom, unsigned int rowSize, unsigned int rowStep)
+{
+	while (top<bottom)
+	{
+		unsigned char* t = top;
+		unsigned char* b = bottom;
+		for (unsigned int i = 0; i<rowSize; ++i, ++t, ++b)
+		{
+			unsigned char temp = *t;
+			*t = *b;
+			*b = temp;
+		}
+		top += rowStep;
+		bottom -= rowStep;
+	}
+}
+
 void BackgroundCamera::update(uint8_t* data, int width, int height)
 {
-	// img->setImage(width, height, 3,
-	// 	GL_RGB, GL_BGR, GL_UNSIGNED_BYTE,
-	// 	data,
-	// 	osg::Image::AllocationMode::NO_DELETE, 1);
-	// img->dirty();
-	uint8_t* img_fliped = (uint8_t*)malloc(sizeof(uint8_t)*width*height*3);
-	for (int i=0; i<height; i++)
-	{
-		for (int j=0; j<width; j++)
-		{
-			*(img_fliped + i*width*3 + j*3) = *(data + (height-i-1)*width*3 + j*3);
-			*(img_fliped + i*width*3 + j*3 + 1) = *(data + (height-i-1)*width*3 + j*3 + 1);
-			*(img_fliped + i*width*3 + j*3 + 2) = *(data + (height-i-1)*width*3 + j*3 + 2);
-		}
-	}
+	unsigned char* top = data;
+	unsigned char* bottom = top + (height - 1)*3*width;
+
+	flipImageV(top, bottom, width*3, width*3);
 
 	img->setImage(width, height, 3,
 		GL_RGB, GL_BGR, GL_UNSIGNED_BYTE,
-		img_fliped,
+		data,
 		osg::Image::AllocationMode::NO_DELETE, 1);
 	img->dirty();
-	free(img_fliped);
 }
 
 osg::Geode* BackgroundCamera::createCameraPlane(int textureWidth, int textureHeight)
@@ -183,9 +186,8 @@ Modelrender::Modelrender(int cols, int rows)
 	background->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
 	foreground->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
 
-	// Add the groud to the viewer、
-	// _image = new osg::Image();
-    viewer.setSceneData(group.get());
+	// Add the groud to the viewer
+	viewer.setSceneData(group.get());
 
 	angleRoll = 0.0;
 }
@@ -199,6 +201,7 @@ uint8_t* Modelrender::rend(uint8_t * inputimage)
 	// Position Parameters: Roll, Pitch, Heading, X, Y, Z
 	vCamera.updatePosition(angleRoll, 0, 0, 0, 0, 0);
 	viewer.frame();
-	// vCamera.image->flipVertical();
+	//vCamera.image->flipVertical();
 	return vCamera.image->data();
 }
+
