@@ -12,8 +12,8 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-    // cv::VideoCapture cap("./mkv.mkv");
-    cv::VideoCapture cap(0);
+    cv::VideoCapture cap("./video.avi");
+    // cv::VideoCapture cap(0);
 
     clock_t startTime, endTime;
 

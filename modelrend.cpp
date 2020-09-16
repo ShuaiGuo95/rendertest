@@ -16,6 +16,7 @@
 #include <osgUtil/Optimizer>
 #include <osgGA/GUIEventHandler>
 #include <osgGA/TrackballManipulator>
+#include <cmath>
 
 void VirtualCamera::createVirtualCamera(osg::ref_ptr<osg::Camera> cam, int width, int height)
 {
@@ -158,7 +159,7 @@ Modelrender::Modelrender(int cols, int rows)
 	osg::Camera* backgroundCamera = bgCamera.createCamera(width, height);
 
 	// Load Truck Model as Example Scene
-	osg::ref_ptr<osg::Node> truckModel = osgDB::readNodeFile("avatar.osg"); //spaceship.osgt; º¬¶¯»­µÄ£º nathan.osg, avatar.osg, bignathan.osg,
+	osg::ref_ptr<osg::Node> truckModel = osgDB::readNodeFile("avatar.osg"); //spaceship.osgt; nathan.osg, avatar.osg, bignathan.osg,
 	osg::Group* truckGroup = new osg::Group();
 	// Position of truck
 	osg::PositionAttitudeTransform* position = new osg::PositionAttitudeTransform();
@@ -172,7 +173,7 @@ Modelrender::Modelrender(int cols, int rows)
 	position->addChild(truckModel);
 
 	// Set Position of Model
-	osg::Vec3 modelPosition(0, 100, 0);
+	osg::Vec3 modelPosition(0, 0, 0);
 	position->setPosition(modelPosition);
 
 	// Create new group node
@@ -196,12 +197,18 @@ uint8_t* Modelrender::rend(uint8_t * inputimage)
 {
 	bgCamera.update(inputimage, width, height);
 
-	//angleRoll += 0.5;
+	angleRoll += 0.5;
 
 	// Position Parameters: Roll, Pitch, Heading, X, Y, Z
-	vCamera.updatePosition(angleRoll, 0, 0, 0, 0, 0);
+	// Three different rotations
+	// Roll
+	//vCamera.updatePosition(angleRoll, 0, 0, 0, -100, 0);
+	// Pitch
+	vCamera.updatePosition(0, angleRoll, 0, 0, -100*cos(osg::PI_2f * angleRoll / 90.0f), 100*sin(osg::PI_2f * angleRoll / 90.0f));
+	// Heading
+	vCamera.updatePosition(0, 0, angleRoll, 100*sin(osg::PI_2f * angleRoll / 90.0f), -100*cos(osg::PI_2f * angleRoll / 90.0f), 0);
 	viewer.frame();
-	//vCamera.image->flipVertical();
+	// vCamera.image->flipVertical();
 	return vCamera.image->data();
 }
 
