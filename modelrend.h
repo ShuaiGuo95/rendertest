@@ -39,7 +39,7 @@ public:
 	osgViewer::Viewer viewer;
 	BackgroundCamera bgCamera;
 	VirtualCamera vCamera;
-	double angleRoll;
+	double angleRoll, stepRoll;
 	int width, height;
 
 	Modelrender(int cols, int rows);

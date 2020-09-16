@@ -191,13 +191,16 @@ Modelrender::Modelrender(int cols, int rows)
 	viewer.setSceneData(group.get());
 
 	angleRoll = 0.0;
+	stepRoll = 1.0;
 }
 
 uint8_t* Modelrender::rend(uint8_t * inputimage)
 {
 	bgCamera.update(inputimage, width, height);
 
-	angleRoll += 0.5;
+	angleRoll += stepRoll;
+	if(angleRoll>90) stepRoll = -1;
+	if(angleRoll<-90) stepRoll = 1;
 
 	// Position Parameters: Roll, Pitch, Heading, X, Y, Z
 	// Three different rotations
