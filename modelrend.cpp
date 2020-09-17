@@ -43,7 +43,7 @@ void VirtualCamera::updatePosition(double r, double p, double h, double x, doubl
 	translation.makeTranslate(x, y, z);
 	myCameraMatrix = rotation * translation;
 	osg::Matrixd i = myCameraMatrix.inverse(myCameraMatrix);
-	camera->setViewMatrix(i*osg::Matrix::rotate(-(osg::PI_2), 1, -0, 0));
+	camera->setViewMatrix(i*osg::Matrix::rotate(-(osg::PI_2), 1, 0, 0));
 }
 
 
@@ -207,7 +207,7 @@ uint8_t* Modelrender::rend(uint8_t * inputimage)
 	// Roll
 	//vCamera.updatePosition(angleRoll, 0, 0, 0, -100, 0);
 	// Pitch
-	vCamera.updatePosition(0, angleRoll, 0, 0, -100*cos(osg::PI_2f * angleRoll / 90.0f), 100*sin(osg::PI_2f * angleRoll / 90.0f));
+	// vCamera.updatePosition(0, angleRoll, 0, 0, -100*cos(osg::PI_2f * angleRoll / 90.0f), 100*sin(osg::PI_2f * angleRoll / 90.0f));
 	// Heading
 	vCamera.updatePosition(0, 0, angleRoll, 100*sin(osg::PI_2f * angleRoll / 90.0f), -100*cos(osg::PI_2f * angleRoll / 90.0f), 0);
 	viewer.frame();
