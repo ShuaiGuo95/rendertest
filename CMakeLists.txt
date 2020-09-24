@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(OSG_DIR "/home/gs/OpenSceneGraph-master")
+set(OSG_DIR "/home/gs/OpenSceneGraph")
 set(OSG_LIBS 
 ${OSG_DIR}/build/lib/libOpenThreads.so           ${OSG_DIR}/build/lib/libosgParticle.so.202        ${OSG_DIR}/build/lib/libosgText.so.3.7.0
 ${OSG_DIR}/build/lib/libOpenThreads.so.21        ${OSG_DIR}/build/lib/libosgParticle.so.3.7.0      ${OSG_DIR}/build/lib/libosgUI.so
