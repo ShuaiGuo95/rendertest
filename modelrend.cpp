@@ -1,16 +1,8 @@
 #include "modelrend.h"
 
-#include <osgViewer/Viewer>
-#include <osgDB/ReadFile>
-#include <osgDB/WriteFile>
-#include <osg/PositionAttitudeTransform>
-#include <osgAnimation/BasicAnimationManager>
-
 #include <osgViewer/GraphicsWindow>
 #include <osg/Node>
-#include <osg/Geode>
 #include <osg/Group>
-#include <osg/Camera>
 #include <osg/Image>
 #include <osg/BufferObject>
 #include <osgUtil/Optimizer>
@@ -18,12 +10,40 @@
 #include <osgGA/TrackballManipulator>
 #include <cmath>
 
+#include <osg/ArgumentParser>
+#include <osg/CoordinateSystemNode>
+#include <osg/Matrix>
+#include <osg/NodeVisitor>
+
+#include <osgUtil/IntersectionVisitor>
+#include <osgUtil/GLObjectsVisitor>
+
+#include <osgDB/ReadFile>
+#include <osgDB/WriteFile>
+
+#include <osgGA/DriveManipulator>
+#include <osgGA/FlightManipulator>
+#include <osgGA/KeySwitchMatrixManipulator>
+#include <osgGA/TerrainManipulator>
+#include <osgGA/TrackballManipulator>
+
+#include <osgTerrain/Terrain>
+#include <osgTerrain/GeometryTechnique>
+
+#include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
+#include <osgViewer/Renderer>
+
+#include <iostream>
+#include <sstream>
+
+
 void VirtualCamera::createVirtualCamera(osg::ref_ptr<osg::Camera> cam, int width, int height)
 {
 	camera = cam;
 	// Initial Values
 	camera->setProjectionMatrixAsPerspective(320, 1., 1., 100.);
-	camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER);
+	// camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 	image = new osg::Image;
 	image->allocateImage(width, height, 1, GL_BGR, GL_UNSIGNED_BYTE);
 	camera->attach(osg::Camera::COLOR_BUFFER, image.get());
@@ -124,6 +144,7 @@ osg::Camera* BackgroundCamera::createCamera(int textureWidth, int textureHeight)
 	osg::ref_ptr<osg::Geode> quad = createCameraPlane(textureWidth, textureHeight);
 	//Bind texture to the quadGeometry, then use the following camera:
 	osg::Camera* camera = new osg::Camera;
+	// camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
 	// CAMERA SETUP
 	camera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
 	// use identity view matrix so that children do not get (view) transformed
@@ -147,19 +168,27 @@ Modelrender::Modelrender(int cols, int rows)
 {
 	width = cols;
 	height = rows;
-	// OSG STUFF
-	// Create viewer
-	viewer.setUpViewInWindow(50, 50, width, height);
+
+    osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
+    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits(ds);
+    traits->width = cols;
+    traits->height = rows;
+    traits->pbuffer = true;
+    traits->readDISPLAY();
+    osg::ref_ptr<osg::GraphicsContext> pbuffer = osg::GraphicsContext::createGraphicsContext(traits.get()); // this step doesn't work on ssh
 
 	// Main Camera
 	osg::ref_ptr<osg::Camera>  camera = viewer.getCamera();
+	camera->setGraphicsContext(pbuffer.get()); // this step hide the render window
+    camera->setViewport(new osg::Viewport(0,0,traits->width,traits->height));
+
 	vCamera.createVirtualCamera(camera, width, height);
 
 	// Background-Camera (OpenCV Feed)
 	osg::Camera* backgroundCamera = bgCamera.createCamera(width, height);
 
 	// Load Truck Model as Example Scene
-	osg::ref_ptr<osg::Node> truckModel = osgDB::readNodeFile("avatar.osg"); //spaceship.osgt; nathan.osg, avatar.osg, bignathan.osg,
+	osg::ref_ptr<osg::Node> truckModel = osgDB::readNodeFile("avatar.osg"); //spaceship.osgt; nathan.osg, avatar.osg, bignathan.osg
 	osg::Group* truckGroup = new osg::Group();
 	// Position of truck
 	osg::PositionAttitudeTransform* position = new osg::PositionAttitudeTransform();
